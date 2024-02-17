@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '@ocmi/api/app/app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 
 export const globalPrefix = 'api';
 
@@ -22,7 +22,9 @@ export const getApp = async () => {
    * Initialize the NestJS application
    */
   const app = await NestFactory.create(AppModule);
+  app.enableCors();
   app.setGlobalPrefix(globalPrefix);
+  app.useGlobalPipes(new ValidationPipe());
 
   return app;
 };

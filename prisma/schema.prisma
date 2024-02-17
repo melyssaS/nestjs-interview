@@ -6,6 +6,63 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgres"
   url      = env("DB_URL")
+}
+
+model User {
+  id          Int         @id @default(autoincrement())
+  companyName String? // Optional, only for clients
+  email       String      @unique
+  password    String
+  role        Role?       @default(CLIENT) // 'CLIENT' or 'ADMIN'
+  employees   Employee[]
+  timesheets  Timesheet[]
+}
+
+model Employee {
+  id        Int               @id @default(autoincrement())
+  userId    Int // Foreign key to User
+  name      String
+  payType   PayType // 'HOURLY' or 'SALARY'
+  payAmount Float
+  user      User              @relation(fields: [userId], references: [id])
+  details   TimesheetDetail[]
+}
+
+model Timesheet {
+  id        Int               @id @default(autoincrement())
+  userId    Int // Foreign key to User
+  checkDate DateTime
+  status    Status?           @default(PENDING) // Optional, for admin use      
+  note      String? // Optional, for admin use
+  user      User              @relation(fields: [userId], references: [id])
+  details   TimesheetDetail[]
+}
+
+model TimesheetDetail {
+  id          Int       @id @default(autoincrement())
+  timesheetId Int // Foreign key to Timesheet
+  employeeId  Int // Foreign key to Employee
+  hoursWorked Float? // Optional, only for hourly employees
+  grossPay    Float
+  timesheet   Timesheet @relation(fields: [timesheetId], references: [id], onDelete: Cascade)
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  CLIENT
+  ADMIN
+}
+
+enum PayType {
+  HOURLY
+  SALARY
+}
+
+enum Status {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
 }
